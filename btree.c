@@ -16,8 +16,8 @@ typedef struct __TREE_NODE TREE_NODE;
 TREE_NODE* rootNode = NULL;
 
 // ノートを作成する
-void createNode(TREE_NODE *target){
-    target = (TREE_NODE*)malloc(sizeof(TREE_NODE));
+TREE_NODE* createNode(){
+    TREE_NODE *target = (TREE_NODE*)malloc(sizeof(TREE_NODE));
     if(target == NULL){
         fprintf(stderr, "malloc error.");
         exit(EXIT_FAILURE);
@@ -25,6 +25,7 @@ void createNode(TREE_NODE *target){
     target->parent = NULL;
     target->rightnode = NULL;
     target->leftnode = NULL;
+    return target;
 }
 
 // ノードを解放する
@@ -42,7 +43,7 @@ void drawNodes(TREE_NODE *current){
     if(current == NULL) return;
     if(!current->leftnode) freeNode(current->leftnode);
     if(!current->leftnode) freeNode(current->rightnode);
-    printf("%d -> %s¥n", current->index, current->data);
+    printf("%d -> %s\n", current->index, current->data);
 }
 
 /*
@@ -52,31 +53,32 @@ void addNode(int key, char value[DATA_LEN]){
 
     // First Add
     if(rootNode == NULL){
-        createNode(rootNode);
+        rootNode = createNode();
         rootNode->index = key;
         strncpy(rootNode->data, value, DATA_LEN);
         return;
     }
 
     TREE_NODE *current = rootNode;
+    TREE_NODE *parent = rootNode;
 
     // 挿入場所まで移動させる
     while(1){
+        parent = current;
+
         if(current->index > key){ // Left
             current = current->leftnode;
-            if(current == NULL){
-                break;
-            }
         }else{ // right
             current = current->rightnode;
-            if(current == NULL){
-                break;
-            }
+        }
+        
+        if(current == NULL){
+            break;
         }
     }
 
-    createNode(current);
-
+    current = createNode();
+    current->parent = parent;
     current->index = key;
     strncpy(current->data, value, DATA_LEN);
 }
@@ -104,8 +106,6 @@ int main( void ){
         printf("value(string[10])->");
         scanf("%9s", val);
         fflush(stdin);
-
-        printf("input -> %d:%s¥n", key, val);
 
         addNode(key, val);
     }
