@@ -48,13 +48,15 @@ void drawNodes(TREE_NODE *current){
  * ノードを検索
  */
 TREE_NODE* findNode(TREE_NODE *current, int key){
-    if(current == NULL) return NULL;
-    if(current->index > key && current->leftnode != NULL){ // left
+    if(current->index == key){
+        return current;
+    }else if(current->index > key && current->leftnode != NULL){ // left
         return findNode(current->leftnode, key);
-    }else if(current->index < key && current->rightnode != NULL){
+    }else if(current->index < key && current->rightnode != NULL){ // right
         return findNode(current->rightnode, key);
+    }else{
+        return NULL;
     }
-    return current;
 }
 
 /*
@@ -81,9 +83,12 @@ void addNode(int key, char value[DATA_LEN]){
         if(current->index > key){ // Left
             current = current->leftnode;
             isLeft = 1;
-        }else{ // right
+        }else if(current->index < key){ // right
             current = current->rightnode;
             isLeft = 0;
+        }else if(current->index == key){ // 同じなら上書き
+            strncpy(current->data, value, DATA_LEN);
+            return;
         }
         
         if(current == NULL){
