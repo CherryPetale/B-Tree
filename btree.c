@@ -30,20 +30,18 @@ TREE_NODE* createNode(){
 
 // ノードを解放する
 void freeNode(TREE_NODE *current){
-    if(current == NULL) return;
-    if(!current->leftnode) freeNode(current->leftnode);
-    if(!current->leftnode) freeNode(current->rightnode);
-    free(current);
+    if(current != NULL && current->leftnode != NULL) freeNode(current->leftnode);
+    if(current != NULL && current->rightnode != NULL) freeNode(current->rightnode);
+    if(current != NULL) free(current);
 }
 
 /*
  * 現在のノード状態を表示する
  */
 void drawNodes(TREE_NODE *current){
-    if(current == NULL) return;
-    if(!current->leftnode) freeNode(current->leftnode);
-    if(!current->leftnode) freeNode(current->rightnode);
-    printf("%d -> %s\n", current->index, current->data);
+    if(current != NULL && current->leftnode != NULL) drawNodes(current->leftnode);
+    if(current != NULL && current->rightnode != NULL) drawNodes(current->rightnode);
+    if(current != NULL) printf("%d -> %s\n", current->index, current->data);
 }
 
 /*
@@ -61,6 +59,7 @@ void addNode(int key, char value[DATA_LEN]){
 
     TREE_NODE *current = rootNode;
     TREE_NODE *parent = rootNode;
+    int isLeft = 0;
 
     // 挿入場所まで移動させる
     while(1){
@@ -68,8 +67,10 @@ void addNode(int key, char value[DATA_LEN]){
 
         if(current->index > key){ // Left
             current = current->leftnode;
+            isLeft = 1;
         }else{ // right
             current = current->rightnode;
+            isLeft = 0;
         }
         
         if(current == NULL){
@@ -78,6 +79,12 @@ void addNode(int key, char value[DATA_LEN]){
     }
 
     current = createNode();
+
+    if(isLeft == 1) 
+        parent->leftnode = current;
+    else
+        parent->rightnode = current;
+
     current->parent = parent;
     current->index = key;
     strncpy(current->data, value, DATA_LEN);
@@ -111,6 +118,8 @@ int main( void ){
     }
 
     drawNodes(rootNode);
+
+    freeNode(rootNode);
 
     return 0;
 }
