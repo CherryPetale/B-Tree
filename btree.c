@@ -29,9 +29,9 @@ TREE_NODE* createNode(){
 }
 
 // ノードを解放する
-void freeNode(TREE_NODE *current){
-    if(current != NULL && current->leftnode != NULL) freeNode(current->leftnode);
-    if(current != NULL && current->rightnode != NULL) freeNode(current->rightnode);
+void freeNodes(TREE_NODE *current){
+    if(current != NULL && current->leftnode != NULL) freeNodes(current->leftnode);
+    if(current != NULL && current->rightnode != NULL) freeNodes(current->rightnode);
     if(current != NULL) free(current);
 }
 
@@ -42,6 +42,19 @@ void drawNodes(TREE_NODE *current){
     if(current != NULL && current->leftnode != NULL) drawNodes(current->leftnode);
     if(current != NULL && current->rightnode != NULL) drawNodes(current->rightnode);
     if(current != NULL) printf("%d -> %s\n", current->index, current->data);
+}
+
+/*
+ * ノードを検索
+ */
+TREE_NODE* findNode(TREE_NODE *current, int key){
+    if(current == NULL) return NULL;
+    if(current->index > key && current->leftnode != NULL){ // left
+        return findNode(current->leftnode, key);
+    }else if(current->index < key && current->rightnode != NULL){
+        return findNode(current->rightnode, key);
+    }
+    return current;
 }
 
 /*
@@ -90,6 +103,47 @@ void addNode(int key, char value[DATA_LEN]){
     strncpy(current->data, value, DATA_LEN);
 }
 
+/*
+ * ノードを削除する
+ */
+void removeNode(int key){
+    TREE_NODE *target = findNode(rootNode, key);
+    TREE_NODE *childTop = NULL;
+    
+    if(target == NULL) return;
+
+    if(target->parent == NULL){ // 自分がトップ
+        if(target->leftnode != NULL && target->rightnode != NULL){
+            target->rightnode->parent = target->leftnode;
+            target->leftnode->parent = NULL;
+        }else{
+            if(target->leftnode != NULL) target->leftnode->parent = NULL;
+            if(target->rightnode != NULL) target->rightnode->parent = NULL;
+        }
+    }else{ // 親がいる
+        if(target->leftnode != NULL && target->rightnode != NULL){
+            target->leftnode->parent = target->parent;
+            target->rightnode->parent = target->leftnode;
+            childTop = target->leftnode;
+        }else{
+            if(target->leftnode != NULL){
+                target->leftnode->parent = target->parent;
+                childTop = target->leftnode;
+            }
+            if(target->rightnode != NULL){
+                target->rightnode->parent = target->parent;
+                childTop = target->rightnode;
+            } 
+        }
+    }
+
+    if(target->parent->leftnode == target)
+        target->parent->leftnode = childTop;
+    else if(target->parent->rightnode == target)
+        target->parent->rightnode = childTop;
+    
+    free(target);
+}
 
 
 /*
@@ -117,9 +171,15 @@ int main( void ){
         addNode(key, val);
     }
 
-    drawNodes(rootNode);
+    drawNodes(rootNode); //表示
 
-    freeNode(rootNode);
+    removeNode(7); // 削除
+    printf("Delete No.7\n");
+
+    drawNodes(rootNode); //表示
+
+    // メモリ解放
+    freeNodes(rootNode);
 
     return 0;
 }
