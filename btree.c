@@ -36,6 +36,50 @@ void freeNodes(TREE_NODE *current){
 }
 
 /*
+ * 親から見て片側ノードの数を返す
+ * （isLeftNotRight= 1:左　1以外:右
+ */
+int getNodesLength(TREE_NODE *current, int depth, int isLeftNotRight){
+    int length = depth == 0 ? 0 : 1;
+    if(current != NULL && current->leftnode != NULL && !(isLeftNotRight != 1 && depth == 0)){
+        length += getNodesLength(current->leftnode, depth+1, isLeftNotRight);
+    }
+    if(current != NULL && current->rightnode != NULL && !(isLeftNotRight == 1 && depth == 0)){
+        length += getNodesLength(current->rightnode, depth+1, isLeftNotRight);
+    }
+    return length;
+}
+
+/*
+ * ノードの不均等を修正
+ * 再構築後の親を返す
+ */
+TREE_NODE* recreateNodes(TREE_NODE *current){
+    int leftNlen = getNodesLength(current, 0, 1);
+    int rightNlen = getNodesLength(current, 0, 0);
+    int sub = leftNlen > rightNlen ? leftNlen - rightNlen : rightNlen - leftNlen;
+    int i;
+
+    // There's Bug;
+    for(i = 0; i < (int)(sub / 2); i++){
+        if(leftNlen > rightNlen){
+            current->parent = current->leftnode;
+            current->leftnode->rightnode = current;
+            current->leftnode->parent = NULL;
+            current = current->leftnode;
+            current->rightnode->leftnode = NULL;
+        }else{
+            current->parent = current->rightnode;
+            current->rightnode->leftnode = current;
+            current->rightnode->parent = NULL;
+            current = current->rightnode;
+            current->leftnode->rightnode = NULL;
+        }
+    }
+    return current;
+}
+
+/*
  * 現在のノード状態を表示する
  */
 void drawNodes(TREE_NODE *current){
@@ -178,10 +222,18 @@ int main( void ){
 
     drawNodes(rootNode); //表示
 
-    removeNode(7); // 削除
-    printf("Delete No.7\n");
+    printf("Left Nodes Length: %d\n", getNodesLength(rootNode, 0, 1));
+    printf("Right Nodes Length: %d\n", getNodesLength(rootNode, 0, 0));
 
-    drawNodes(rootNode); //表示
+    rootNode = recreateNodes(rootNode); // 不均等修正
+
+    // removeNode(7); // 削除
+    // printf("Delete No.7\n");
+
+    // drawNodes(rootNode); //表示
+
+    printf("Left Nodes Length: %d\n", getNodesLength(rootNode, 0, 1));
+    printf("Right Nodes Length: %d\n", getNodesLength(rootNode, 0, 0));
 
     // メモリ解放
     freeNodes(rootNode);
